@@ -8,6 +8,7 @@ LLM Provider Setup Wizard
 
 import os
 import sys
+import requests
 from pathlib import Path
 from dotenv import dotenv_values, set_key
 
@@ -103,14 +104,67 @@ def choose_provider() -> dict:
         print("   ❌ خيار غير صحيح. أدخل رقماً من 1 إلى 5.\n")
 
 
+def get_ollama_models(base_url: str = "http://localhost:11434") -> list:
+    """
+    استدعاء Ollama API للحصول على قائمة النماذج المتاحة
+    Callback to Ollama API to get available models
+    """
+    try:
+        response = requests.get(f"{base_url}/api/tags", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            models = data.get("models", [])
+            return [m.get("name", "") for m in models if m.get("name")]
+        return []
+    except Exception:
+        return []
+
+
 def choose_model(provider: dict) -> str:
     examples = provider["model_examples"]
     default = provider["default_model"]
 
     print(f"\n🤖 اختر النموذج / Choose Model:")
+    
+    # If Ollama, try to fetch available models
+    if provider["id"] == "ollama":
+        config = dotenv_values(ENV_PATH)
+        ollama_url = config.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        
+        print(f"   🔍 جارٍ البحث عن النماذج المتاحة في Ollama...")
+        available_models = get_ollama_models(ollama_url)
+        
+        if available_models:
+            print(f"\n   ✅ النماذج المتاحة / Available Models ({len(available_models)}):")
+            for i, m in enumerate(available_models, 1):
+                marker = " ⭐" if m == default else ""
+                print(f"      {i}) {m}{marker}")
+            print()
+            
+            while True:
+                choice = input(f"اختر رقم النموذج أو اكتب اسمه (Enter للافتراضي: {default}): ").strip()
+                
+                if not choice:
+                    return default
+                
+                # Check if it's a number
+                if choice.isdigit():
+                    idx = int(choice) - 1
+                    if 0 <= idx < len(available_models):
+                        return available_models[idx]
+                    print(f"   ❌ الرقم خارج النطاق. اختر من 1 إلى {len(available_models)}\n")
+                else:
+                    # User typed a model name
+                    return choice
+        else:
+            print(f"   ⚠️  لم يتم العثور على نماذج متاحة. تأكد من تشغيل Ollama.")
+            print(f"   💡 يمكنك تحميل نموذج بـ: ollama pull <model-name>")
+    
+    # For non-Ollama or if fetching failed, show examples
     print(f"   أمثلة / Examples:")
     for i, m in enumerate(examples, 1):
-        print(f"      {i}) {m}")
+        marker = " ⭐" if m == default else ""
+        print(f"      {i}) {m}{marker}")
     print()
 
     user_input = input(f"اسم النموذج (Enter للافتراضي: {default}): ").strip()
