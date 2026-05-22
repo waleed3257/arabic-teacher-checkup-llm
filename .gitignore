@@ -40,9 +40,9 @@ Thumbs.db
 # Logs
 *.log
 
-# Reports (optional - uncomment if you want to ignore generated reports)
-# reports/
-# *.txt
+# Reports and Output
+output/*.xlsx
+!output/.gitkeep
 
 # Temporary files
 temp/
