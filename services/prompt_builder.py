@@ -41,7 +41,12 @@ def build_prompt(teacher: Teacher) -> str:
     ]
     
     if teacher.rank:
-        lines.append(f"- الرتبة: {teacher.rank}")
+        rank_display = teacher.rank
+        for prefix in ("رتبة معلم ", "رتبة ", "معلم "):
+            if rank_display.startswith(prefix):
+                rank_display = rank_display[len(prefix):]
+                break
+        lines.append(f"- الرتبة: {rank_display}")
     
     if teacher.specialization:
         lines.append(f"- التخصص: {teacher.specialization}")
@@ -119,8 +124,7 @@ def build_prompt(teacher: Teacher) -> str:
     
     lines.append("\n" + "="*60)
     lines.append("المطلوب:")
-    lines.append("اكتب تقريراً وصفياً مترابطاً باللغة العربية الفصحى لموظف خدمة العملاء،")
-    lines.append("يصف الحالة الوظيفية والمهنية للمعلم بأسلوب واضح ومهني.")
-    lines.append("ركز على البرنامج الأحدث مع ذكر موجز للبرامج السابقة.")
+    lines.append("اكتب ملخصاً مباشراً وموجزاً في سطرين أو ثلاثة أسطر فقط، بدون مقدمة أو شرح.")
+    lines.append("اتبع النمط: المعلم [الاسم] هوية وطنية رقم [الرقم] معلم رتبة [الرتبة] بإدارة تعليم [الإدارة]، تخصصه [التخصص] بقطاع [القطاع]، خدمته [السنوات] سنوات من [نوع العقد]، [حالة فرص بإيجاز]، علماً أن إجمالي نقاطه هي [النقاط] و[هل له تقديم سابق أم لا].")
     
     return "\n".join(lines)

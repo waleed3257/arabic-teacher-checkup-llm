@@ -68,7 +68,11 @@ def main():
     print("\n🤖 جارٍ توليد التقرير الوصفي باستخدام الذكاء الاصطناعي...")
     print("   (قد يستغرق هذا بضع ثوانٍ...)\n")
     
-    report = generate_report(prompt)
+    try:
+        report = generate_report(prompt)
+    except Exception as e:
+        print(f"\n{e}")
+        sys.exit(1)
     
     print_separator()
     print("📋 التقرير الوصفي النهائي:")
